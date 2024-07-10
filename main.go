@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/brianvoe/gofakeit/v7"
-	"os"
+	"log"
 	"strconv"
+
+	"github.com/brianvoe/gofakeit/v7"
+	"github.com/gin-gonic/gin"
 )
 
 type User struct {
@@ -23,52 +23,120 @@ type User struct {
 	AgreeTerm        string `fake:"{day}/{month}/{year} {hour}:{minute}:{second}" format:"31/12/2006 02:34:56" json:"agreeTerm"`
 }
 
-func main() {
-	var amount uint
-	if len(os.Args) == 2 {
-		_amount, err := strconv.ParseUint(os.Args[1], 10, 32)
-		if err != nil {
-			panic("Xin vui long nhap so luong nguoi dung!")
-		}
-		amount = uint(_amount)
-	} else {
-		fmt.Print("Xin vui long nhap so luong nguoi dung: ")
+type LoginUser struct {
+	Username      string `fake:"{username}" json:"userName"`
+	GamerId       string `fake:"{uuid}" json:"gamerId"`
+	GameName      string `json:"gameName"`
+	PublisherName string `json:"publisherName"`
+	Ip            string `fake:"{ipv4address}" json:"ip"`
+	DeviceId      string `fake:"{number:12}" json:"deviceId"`
+	DeviceName    string `json:"deviceName"`
+	Os            string `json:"os"`
+	LoginTime     string `fake:"{day}/{month}/{year} {hour}:{minute}:{second}" format:"31/12/2006 02:34:56" json:"loginTime"`
+}
 
-		n, err := fmt.Scanln(&amount)
-		if err != nil || n != 1 || amount <= 0 {
-			panic("Xin vui long nhap so luong nguoi dung!")
-		}
+type GameInfo struct {
+	GameName      string
+	PublisherName string
+}
+
+var Platforms = [3]string{"Android", "iOS", "Web"}
+var AndroidDevices = [5]string{"Galaxy", "Oppo", "Vivo", "Pixel", "Redmi"}
+var IOSDevices = [2]string{"iPhone", "iPad"}
+var WebDevices = [3]string{"Chrome", "Firefox", "Safari"}
+var GameNames = [5]GameInfo{
+	{GameName: "PUBG", PublisherName: "Tencent"},
+	{GameName: "Free Fire", PublisherName: "Garena"},
+	{GameName: "Call of Duty", PublisherName: "Activision"},
+	{GameName: "Mobile Legends", PublisherName: "Moonton"},
+	{GameName: "Among Us", PublisherName: "InnerSloth"},
+}
+
+func getAndroidDevice(username string) string {
+	return username + " " + AndroidDevices[gofakeit.Number(0, 4)]
+}
+
+func getIOSDevice(username string) string {
+	return username + " " + IOSDevices[gofakeit.Number(0, 1)]
+}
+
+func getWebDevice() string {
+	return WebDevices[gofakeit.Number(0, 2)]
+}
+
+func getUserDevice(username string) (string, string) {
+	platform := Platforms[gofakeit.Number(0, 2)]
+
+	switch platform {
+	case "Android":
+		return getAndroidDevice(username), platform
+	case "iOS":
+		return getIOSDevice(username), platform
+	case "Web":
+		return getWebDevice(), platform
 	}
+	return "", platform
+}
 
-	var user User
-	var result []User
-
-	for i := 0; i < int(amount); i++ {
+func getSyncUsers(amount int) []User {
+	var users []User
+	for i := 0; i < amount; i++ {
+		var user User
 		err := gofakeit.Struct(&user)
 		if err != nil {
 			panic(err)
 		}
-		result = append(result, user)
+		users = append(users, user)
 	}
+	return users
 
-	// Step 1: Open a file
-	file, err := os.Create("output.json")
-	if err != nil {
-		panic(fmt.Sprintf("Failed to create file: %v", err))
+}
+
+func getLoginUsers(amount int) []LoginUser {
+	var loginUsers []LoginUser
+	for i := 0; i < amount; i++ {
+		var loginUser LoginUser
+		err := gofakeit.Struct(&loginUser)
+		if err != nil {
+			panic(err)
+		}
+
+		deviceName, os := getUserDevice(loginUser.Username)
+		gameInfo := GameNames[gofakeit.Number(0, 4)]
+		loginUser.GameName = gameInfo.GameName
+		loginUser.PublisherName = gameInfo.PublisherName
+		loginUser.DeviceName = deviceName
+		loginUser.Os = os
+		loginUsers = append(loginUsers, loginUser)
 	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
+	return loginUsers
+}
 
-	jsonData, err := json.MarshalIndent(result, "", "\t")
-	if err != nil {
-		panic(fmt.Sprintf("Failed to marshal JSON: %v", err))
+func main() {
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
+	const ADDRESS = "localhost:30556"
+	log.Println("Starting server...")
+	log.Println("Bấm Ctrl + C để dừng server")
+	log.Println("Để lấy danh sách tài khoản đồng bộ, truy cập vào đường dẫn: http://" + ADDRESS + "/sync-users?amount=10")
+	log.Println("Để lấy danh sách tài khoản đăng nhập, truy cập vào đường dẫn: http://" + ADDRESS + "/login-users?amount=10")
+
+	r.GET("/sync-users", func(c *gin.Context) {
+		amountStr := c.Query("amount")
+		amount, _ := strconv.ParseInt(amountStr, 10, 64)
+		users := getSyncUsers(int(amount))
+		c.JSON(200, users)
+	})
+
+	r.GET("/login-users", func(c *gin.Context) {
+		amountStr := c.Query("amount")
+		amount, _ := strconv.ParseInt(amountStr, 10, 64)
+		loginUsers := getLoginUsers(int(amount))
+		c.JSON(200, loginUsers)
+	})
+
+	err := r.Run(ADDRESS)
+	if err == nil {
+		log.Println("Server is running on address: " + ADDRESS)
 	}
-
-	_, err = file.Write(jsonData)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to write JSON to file: %v", err))
-	}
-
-	fmt.Println("Xin vui long kiem tra file output.json!")
 }

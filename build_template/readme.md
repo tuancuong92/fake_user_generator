@@ -1,17 +1,7 @@
 HDSH
 ===============
 
-Cách 1
-------------
-Chạy với cú pháp:
-`./run N` với N là số lượng user cần tạo ra.
-Ví dụ
-```bash
-./run 99
-```
+Chạy file `run` để khởi động server
 
-Cách 2
----------------
-Chạy trực tiếp với cú pháp `./run` và làm theo hướng dẫn
-
-Kiểm tra file `output.json` để lấy kết quả
+Để lấy danh sách tài khoản đồng bộ, gọi API vào đường dẫn: http://localhost:30556/sync-users?amount=10
+Để lấy danh sách tài khoản đăng nhập, gọi API vào đường dẫn: http://localhost:30556/login-users?amount=10

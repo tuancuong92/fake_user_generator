@@ -2,37 +2,40 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/gin-gonic/gin"
 )
 
 type User struct {
-	GamerId          string `fake:"{uuid}" json:"gamerId"`
+	GamerId          int    `fake:"{number:7}" json:"gamerId"`
 	Username         string `fake:"{username}" json:"userName"`
 	FullName         string `fake:"{name}" json:"fullName"`
-	Birthday         string `fake:"{day}/{month}/{year}" format:"31/12/2006" json:"birthday"`
+	Birthday         string `json:"birthday"`
 	IdentityNumber   string `fake:"{number:12}" json:"identityNumber"`
 	PhoneNumber      string `fake:"{phone}" json:"phoneNumber"`
 	Email            string `fake:"{email}" json:"email"`
 	Address          string `fake:"{street}, {city}" json:"address"`
-	RegistrationTime string `fake:"{day}/{month}/{year} {hour}:{minute}:{second}" format:"31/12/2006 02:34:56" json:"registrationTime"`
-	DeviceRegister   string `fake:"{useragent}" json:"deviceRegister"`
+	RegistrationTime string `json:"registrationTime"`
+	DeviceRegister   string `json:"deviceRegister"`
 	Ip               string `fake:"{ipv4address}" json:"ip"`
-	AgreeTerm        string `fake:"{day}/{month}/{year} {hour}:{minute}:{second}" format:"31/12/2006 02:34:56" json:"agreeTerm"`
+	AgreeTerm        string `json:"agreeTerm"`
+	OtpTime          string `json:"otpTime"`
 }
 
 type LoginUser struct {
 	Username      string `fake:"{username}" json:"userName"`
-	GamerId       string `fake:"{uuid}" json:"gamerId"`
+	GamerId       int    `fake:"{number:7}" json:"gamerId"`
 	GameName      string `json:"gameName"`
 	PublisherName string `json:"publisherName"`
 	Ip            string `fake:"{ipv4address}" json:"ip"`
 	DeviceId      string `fake:"{number:12}" json:"deviceId"`
 	DeviceName    string `json:"deviceName"`
 	Os            string `json:"os"`
-	LoginTime     string `fake:"{day}/{month}/{year} {hour}:{minute}:{second}" format:"31/12/2006 02:34:56" json:"loginTime"`
+	LoginTime     string `json:"loginTime"`
 }
 
 type GameInfo struct {
@@ -86,6 +89,15 @@ func getSyncUsers(amount int) []User {
 		if err != nil {
 			panic(err)
 		}
+
+		registrationTime := getRandomRegisterTime()
+
+		user.Birthday = getRandomAdultBirthday()
+		user.RegistrationTime = registrationTime
+		user.DeviceRegister, _ = getUserDevice(user.Username)
+		user.AgreeTerm = registrationTime
+		user.OtpTime = registrationTime
+
 		users = append(users, user)
 	}
 	return users
@@ -101,15 +113,71 @@ func getLoginUsers(amount int) []LoginUser {
 			panic(err)
 		}
 
+		loginTime := getRandomRegisterTime()
 		deviceName, os := getUserDevice(loginUser.Username)
 		gameInfo := GameNames[gofakeit.Number(0, 4)]
+
 		loginUser.GameName = gameInfo.GameName
 		loginUser.PublisherName = gameInfo.PublisherName
 		loginUser.DeviceName = deviceName
 		loginUser.Os = os
+		loginUser.LoginTime = loginTime
+
 		loginUsers = append(loginUsers, loginUser)
 	}
 	return loginUsers
+}
+
+func getRandomDate(_startDate, _endDate time.Time) time.Time {
+	var startDate time.Time
+	var endDate time.Time
+
+	if _startDate.IsZero() {
+		startDate = time.Date(1970, 1, 0, 0, 0, 0, 0, time.UTC)
+	} else {
+		startDate = _startDate
+	}
+
+	if _endDate.IsZero() {
+		endDate = time.Now()
+	} else {
+		endDate = _endDate
+	}
+
+	// Calculate the difference between start and end date
+	diff := endDate.Sub(startDate).Hours() / 24
+
+	log.Println(int(diff))
+
+	// Generate a random number of days to add to the start date
+	randomDays := rand.Intn(int(diff))
+
+	// Add the random number of days to the start date
+	randomDate := startDate.AddDate(0, 0, randomDays)
+
+	return randomDate
+}
+
+func toVnDate(time time.Time) string {
+	return time.Format("02/01/2006")
+}
+
+func toVnDateTime(time time.Time) string {
+	return time.Format("02/01/2006 15:04:05")
+}
+
+func getRandomAdultBirthday() string {
+	// Get random date from 18 years ago to now
+	endDate := time.Now()
+	startDate := endDate.AddDate(-18, 0, 0)
+	return toVnDate(getRandomDate(time.Time{}, startDate))
+}
+
+func getRandomRegisterTime() string {
+	// Get random date from 1 year ago to now
+	endDate := time.Now()
+	startDate := endDate.AddDate(-4, 0, 0)
+	return toVnDateTime(getRandomDate(startDate, endDate))
 }
 
 func main() {

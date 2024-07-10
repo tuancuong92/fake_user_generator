@@ -1,0 +1,30 @@
+[
+	{
+		"gamerId": "97220d78-0cda-4ece-abf3-89df46dc18f8",
+		"userName": "Stamm5400",
+		"fullName": "Dane Wiza",
+		"birthday": "14/8/2006",
+		"identityNumber": "490841014",
+		"phoneNumber": "4797431722",
+		"email": "alishabarrows@stroman.com",
+		"address": "5208 Wellstad, Charlotte",
+		"registrationTime": "16/4/1983 23:22:30",
+		"deviceRegister": "Opera/8.14 (Macintosh; U; PPC Mac OS X 10_5_6; en-US) Presto/2.9.210 Version/13.00",
+		"ip": "115.252.218.239",
+		"agreeTerm": "13/7/1916 1:15:53"
+	},
+	{
+		"gamerId": "4224bd39-5658-4173-823f-f88dd8728e0e",
+		"userName": "Goyette7450",
+		"fullName": "Deja Spencer",
+		"birthday": "20/1/1971",
+		"identityNumber": "829230802",
+		"phoneNumber": "9134806726",
+		"email": "fernandoturner@boyer.io",
+		"address": "63137 West Rapidfort, Pittsburgh",
+		"registrationTime": "6/10/1959 0:55:56",
+		"deviceRegister": "Mozilla/5.0 (Windows; U; Windows NT 6.2) AppleWebKit/532.47.8 (KHTML, like Gecko) Version/4.1 Safari/532.47.8",
+		"ip": "153.189.85.133",
+		"agreeTerm": "10/12/2008 15:31:5"
+	}
+]

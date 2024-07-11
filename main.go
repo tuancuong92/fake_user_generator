@@ -15,7 +15,7 @@ type User struct {
 	Username         string `fake:"{username}" json:"userName"`
 	FullName         string `fake:"{name}" json:"fullName"`
 	Birthday         string `json:"birthday"`
-	IdentityNumber   string `fake:"{number:12}" json:"identityNumber"`
+	IdentityNumber   string `fake:"{number:12}" json:"identifyNumber"`
 	PhoneNumber      string `fake:"{phone}" json:"phoneNumber"`
 	Email            string `fake:"{email}" json:"email"`
 	Address          string `fake:"{street}, {city}" json:"address"`
